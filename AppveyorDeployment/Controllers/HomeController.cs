@@ -21,14 +21,22 @@ namespace AppveyorDeployment.Controllers
                 var authHeader = HttpContext.Request.Headers["Authorization"];
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authHeader[0].Substring("Bearer ".Length));
 
-                var payload = new
-                                  {
-                                      value.AccountName,
-                                      ProjectSlug = value.EnvironmentVariables["deploy_project_slug"],
-                                      value.Branch,
-                                      value.CommitId,
-                                      value.EnvironmentVariables
-                                  };
+                var payload = value.Branch == "master"
+                    ? (object) new
+                    {
+                        value.AccountName,
+                        ProjectSlug = value.EnvironmentVariables["deploy_project_slug"],
+                        value.Branch,
+                        value.EnvironmentVariables
+                    }
+                    : new
+                    {
+                        value.AccountName,
+                        ProjectSlug = value.EnvironmentVariables["deploy_project_slug"],
+                        value.Branch,
+                        value.CommitId,
+                        value.EnvironmentVariables
+                    };
                 var response = await client.PostAsync(
                     "https://ci.appveyor.com/api/builds",
                     new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json"));
